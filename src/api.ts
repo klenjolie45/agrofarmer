@@ -1,4 +1,4 @@
-import { Farmer, Loan, InfrastructureAsset, AuditLog, AnalyticsData } from './types';
+import { Farmer, Loan, InfrastructureAsset, FarmerAsset, AuditLog, AnalyticsData, Officer } from './types';
 
 const API_BASE = '/api';
 
@@ -219,5 +219,163 @@ export const api = {
 
   exportDatabaseUrl(): string {
     return `${API_BASE}/export`;
+  },
+
+  // Farmer Self-Service Portal
+  async farmerLogin(identifier: string, pin?: string): Promise<{ farmer: Farmer; loans: Loan[]; assets: FarmerAsset[] }> {
+    const res = await fetch(`${API_BASE}/farmer/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, pin }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Invalid login credentials' }));
+      throw new Error(err.error || 'Failed to sign in');
+    }
+    return res.json();
+  },
+
+  async farmerRegister(farmerData: Partial<Farmer>): Promise<{ farmer: Farmer; loans: Loan[]; assets: FarmerAsset[] }> {
+    const res = await fetch(`${API_BASE}/farmer/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(farmerData),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Registration failed' }));
+      throw new Error(err.error || 'Registration failed');
+    }
+    return res.json();
+  },
+
+  async getFarmerDashboard(farmerId: string): Promise<{
+    farmer: Farmer;
+    loans: Loan[];
+    assets: FarmerAsset[];
+    stats: {
+      totalLoans: number;
+      activeLoansCount: number;
+      pendingLoansCount: number;
+      activeDebtNaira: number;
+      totalRepaidNaira: number;
+      totalAssetsCount: number;
+      totalAssetsNaira: number;
+    };
+  }> {
+    const res = await fetch(`${API_BASE}/farmer/${farmerId}/dashboard`);
+    if (!res.ok) throw new Error('Failed to load farmer dashboard');
+    return res.json();
+  },
+
+  async farmerApplyLoan(loanData: {
+    farmerId: string;
+    purpose: string;
+    amountRequested: number;
+    durationMonths: number;
+    repaymentFrequency: string;
+    collateralDescription?: string;
+    guarantorName?: string;
+    guarantorPhone?: string;
+    notes?: string;
+  }): Promise<Loan> {
+    const res = await fetch(`${API_BASE}/farmer/apply-loan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(loanData),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Failed to submit loan application' }));
+      throw new Error(err.error || 'Failed to submit loan application');
+    }
+    return res.json();
+  },
+
+  async getFarmerAssets(farmerId: string): Promise<FarmerAsset[]> {
+    const res = await fetch(`${API_BASE}/farmer/${farmerId}/assets`);
+    if (!res.ok) throw new Error('Failed to fetch farmer assets');
+    return res.json();
+  },
+
+  async uploadFarmerAsset(assetData: Partial<FarmerAsset>): Promise<FarmerAsset> {
+    const res = await fetch(`${API_BASE}/farmer/assets`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(assetData),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Failed to upload asset' }));
+      throw new Error(err.error || 'Failed to upload asset');
+    }
+    return res.json();
+  },
+
+  async deleteFarmerAsset(farmerId: string, assetId: string): Promise<void> {
+    const res = await fetch(`${API_BASE}/farmer/${farmerId}/assets/${assetId}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Failed to delete asset');
+  },
+
+  // Officers & RBAC
+  async loginOfficer(identifier: string, password: string): Promise<{ officer: Officer; token: string }> {
+    const res = await fetch(`${API_BASE}/officers/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Authentication failed' }));
+      throw new Error(err.error || 'Authentication failed');
+    }
+    return res.json();
+  },
+
+  async getOfficers(): Promise<Officer[]> {
+    const res = await fetch(`${API_BASE}/officers`);
+    if (!res.ok) throw new Error('Failed to fetch officers');
+    return res.json();
+  },
+
+  async getOfficerById(id: string): Promise<Officer> {
+    const res = await fetch(`${API_BASE}/officers/${id}`);
+    if (!res.ok) throw new Error('Failed to fetch officer details');
+    return res.json();
+  },
+
+  async createOfficer(data: Partial<Officer> & { fullName: string; email: string; role: string; performedBy?: string }): Promise<Officer> {
+    const res = await fetch(`${API_BASE}/officers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Failed to create officer' }));
+      throw new Error(err.error || 'Failed to create officer');
+    }
+    return res.json();
+  },
+
+  async updateOfficer(id: string, updates: Partial<Officer> & { performedBy?: string }): Promise<Officer> {
+    const res = await fetch(`${API_BASE}/officers/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Failed to update officer' }));
+      throw new Error(err.error || 'Failed to update officer');
+    }
+    return res.json();
+  },
+
+  async deleteOfficer(id: string, performedBy?: string): Promise<void> {
+    const query = performedBy ? `?performedBy=${encodeURIComponent(performedBy)}` : '';
+    const res = await fetch(`${API_BASE}/officers/${id}${query}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Failed to delete officer' }));
+      throw new Error(err.error || 'Failed to delete officer');
+    }
   }
 };

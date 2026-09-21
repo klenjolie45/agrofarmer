@@ -98,7 +98,7 @@ export const InfrastructureView: React.FC<InfrastructureViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-xs">
           <div className="text-[11px] font-medium text-stone-500 uppercase">Fleet Capital Valuation</div>
-          <div className="text-xl font-bold text-stone-900 mt-0.5">${totalValue.toLocaleString()}</div>
+          <div className="text-xl font-bold text-stone-900 mt-0.5">₦{totalValue.toLocaleString()}</div>
           <div className="text-[11px] text-stone-400 mt-1">Total asset replacement value</div>
         </div>
 
@@ -238,7 +238,7 @@ export const InfrastructureView: React.FC<InfrastructureViewProps> = ({
                     <div>
                       <span className="text-stone-400 block text-[10px] uppercase font-semibold">Community Impact</span>
                       <div className="font-medium text-stone-800">{asset.beneficiaryFarmersCount} Farmers</div>
-                      <div className="text-[11px] text-stone-500">Valued at ${asset.estimatedValueUsd.toLocaleString()}</div>
+                      <div className="text-[11px] text-stone-500">Valued at ₦{(asset.estimatedValueUsd || 0).toLocaleString()}</div>
                     </div>
                   </div>
 

@@ -4,15 +4,20 @@ import {
   Loan, 
   InfrastructureAsset, 
   AuditLog, 
-  SystemSummary 
+  SystemSummary,
+  Officer 
 } from './types';
 import { api } from './api';
-import { Header } from './components/Header';
+import { Header, NavTab } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { FarmersView } from './components/FarmersView';
 import { LoansView } from './components/LoansView';
 import { InfrastructureView } from './components/InfrastructureView';
+import { OfficersView } from './components/OfficersView';
 import { AuditLogsView } from './components/AuditLogsView';
+import { Homepage } from './components/Homepage';
+import { FarmerPortal } from './components/FarmerPortal';
+import { OfficerLogin } from './components/OfficerLogin';
 
 // Modals
 import { FarmerModal } from './components/FarmerModal';
@@ -23,14 +28,28 @@ import { RepaymentModal } from './components/RepaymentModal';
 import { InfrastructureModal } from './components/InfrastructureModal';
 import { AssetDetailModal } from './components/AssetDetailModal';
 import { MaintenanceModal } from './components/MaintenanceModal';
+import { OfficerModal } from './components/OfficerModal';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'farmers' | 'loans' | 'infrastructure' | 'audit'>('dashboard');
+  const [currentView, setCurrentView] = useState<'home' | 'admin' | 'farmer-portal'>('home');
+  const [portalFarmerPhone, setPortalFarmerPhone] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
+
+  // Officer Authentication State
+  const [currentOfficer, setCurrentOfficer] = useState<Officer | null>(() => {
+    try {
+      const stored = localStorage.getItem('agricore_officer');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
 
   // Main Data States
   const [farmers, setFarmers] = useState<Farmer[]>([]);
   const [loans, setLoans] = useState<Loan[]>([]);
   const [infrastructure, setInfrastructure] = useState<InfrastructureAsset[]>([]);
+  const [officers, setOfficers] = useState<Officer[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [summary, setSummary] = useState<SystemSummary | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -54,6 +73,9 @@ export default function App() {
   const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
   const [selectedAssetForMaintenance, setSelectedAssetForMaintenance] = useState<InfrastructureAsset | null>(null);
 
+  const [isOfficerModalOpen, setIsOfficerModalOpen] = useState(false);
+  const [editingOfficer, setEditingOfficer] = useState<Officer | null>(null);
+
   // Toast notification state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -68,12 +90,13 @@ export default function App() {
       setLoading(true);
       setError(null);
 
-      const [farmersData, loansData, infraData, summaryData, logsData] = await Promise.all([
+      const [farmersData, loansData, infraData, summaryData, logsData, officersData] = await Promise.all([
         api.getFarmers(),
         api.getLoans(),
         api.getInfrastructure(),
         api.getSummary(),
         api.getAuditLogs(),
+        api.getOfficers(),
       ]);
 
       setFarmers(farmersData);
@@ -81,6 +104,7 @@ export default function App() {
       setInfrastructure(infraData);
       setSummary(summaryData);
       setAuditLogs(logsData);
+      setOfficers(officersData);
     } catch (err: any) {
       console.error('Error loading data:', err);
       setError(err.message || 'Failed to connect to AgriCore API backend.');
@@ -136,13 +160,13 @@ export default function App() {
 
   const handleApproveLoan = async (loan: Loan) => {
     await api.updateLoanStatus(loan.id, 'Approved', loan.amountRequested);
-    showToast(`Loan ${loan.loanCode} approved for $${loan.amountRequested.toLocaleString()}.`);
+    showToast(`Loan ${loan.loanCode} approved for ₦${loan.amountRequested.toLocaleString()}.`);
     await loadData();
   };
 
   const handleApproveLoanFromDetail = async (loanId: string, approvedAmount: number) => {
     await api.updateLoanStatus(loanId, 'Approved', approvedAmount);
-    showToast(`Loan approved for $${approvedAmount.toLocaleString()}.`);
+    showToast(`Loan approved for ₦${approvedAmount.toLocaleString()}.`);
     await loadData();
   };
 
@@ -166,7 +190,7 @@ export default function App() {
 
   const handleRecordRepayment = async (loanId: string, repayData: any) => {
     const updatedLoan = await api.recordRepayment(loanId, repayData);
-    showToast(`Repayment of $${repayData.amount} recorded successfully.`);
+    showToast(`Repayment of ₦${Number(repayData.amount).toLocaleString()} recorded successfully.`);
     await loadData();
     // Update active modal if open
     if (selectedLoanForDetail && selectedLoanForDetail.id === loanId) {
@@ -193,20 +217,61 @@ export default function App() {
     await loadData();
   };
 
+  // Officer & RBAC Handlers
+  const handleSaveOfficer = async (officerData: Partial<Officer>) => {
+    if (editingOfficer) {
+      const updated = await api.updateOfficer(editingOfficer.id, {
+        ...officerData,
+        performedBy: currentOfficer?.fullName || 'Super Officer'
+      });
+      showToast(`Officer ${updated.fullName} updated successfully.`);
+      if (currentOfficer?.id === updated.id) {
+        setCurrentOfficer(updated);
+        try {
+          localStorage.setItem('agricore_officer', JSON.stringify(updated));
+        } catch (e) {}
+      }
+    } else {
+      const created = await api.createOfficer({
+        ...officerData,
+        fullName: officerData.fullName || 'New Officer',
+        email: officerData.email || '',
+        role: officerData.role || 'FIELD_OFFICER',
+        performedBy: currentOfficer?.fullName || 'Super Officer'
+      });
+      showToast(`Officer ${created.fullName} (${created.staffCode}) registered as ${created.role}.`);
+    }
+    setIsOfficerModalOpen(false);
+    setEditingOfficer(null);
+    await loadData();
+  };
+
+  const handleToggleOfficerStatus = async (officer: Officer) => {
+    const nextStatus = officer.status === 'Active' ? 'Suspended' : 'Active';
+    await api.updateOfficer(officer.id, {
+      status: nextStatus,
+      performedBy: currentOfficer?.fullName || 'Super Officer'
+    });
+    showToast(`Officer ${officer.fullName} is now ${nextStatus}.`);
+    await loadData();
+  };
+
+  const handleDeleteOfficer = async (officerId: string) => {
+    await api.deleteOfficer(officerId, currentOfficer?.fullName || 'Super Officer');
+    showToast('Officer profile removed from directory.');
+    await loadData();
+  };
+
+  const handleLogoutOfficer = () => {
+    setCurrentOfficer(null);
+    try {
+      localStorage.removeItem('agricore_officer');
+    } catch (e) {}
+    showToast('Logged out of Officer ERP.');
+  };
+
   return (
     <div className="min-h-screen bg-stone-100 text-stone-800 flex flex-col font-sans">
-      {/* Persistent App Header */}
-      <Header
-        currentTab={activeTab}
-        onSelectTab={setActiveTab}
-        onOpenNewFarmer={handleOpenNewFarmer}
-        onOpenNewLoan={() => {
-          setLoanModalFarmerId(undefined);
-          setIsLoanModalOpen(true);
-        }}
-        onOpenNewAsset={() => setIsInfrastructureModalOpen(true)}
-      />
-
       {/* Floating Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-5 right-5 z-50 bg-stone-900 text-white text-xs px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 border border-emerald-500/40 animate-fade-in">
@@ -215,8 +280,63 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+      {currentView === 'home' ? (
+        <Homepage
+          stats={summary?.summary ?? null}
+          onEnterFarmerPortal={() => {
+            setPortalFarmerPhone('');
+            setCurrentView('farmer-portal');
+          }}
+          onEnterAdmin={() => setCurrentView('admin')}
+          onQuickLoginFarmer={(phone) => {
+            setPortalFarmerPhone(phone);
+            setCurrentView('farmer-portal');
+          }}
+        />
+      ) : currentView === 'farmer-portal' ? (
+        <FarmerPortal
+          onReturnToHome={() => setCurrentView('home')}
+          onSwitchToAdmin={() => setCurrentView('admin')}
+          initialFarmerPhone={portalFarmerPhone}
+        />
+      ) : !currentOfficer ? (
+        <OfficerLogin
+          onLoginSuccess={(officer, _token) => {
+            setCurrentOfficer(officer);
+            try {
+              localStorage.setItem('agricore_officer', JSON.stringify(officer));
+            } catch (e) {}
+            showToast(`Welcome back, ${officer.fullName}! Logged in as ${officer.roleTitle}.`);
+          }}
+          onReturnHome={() => setCurrentView('home')}
+        />
+      ) : (
+        <>
+          {/* Persistent App Header */}
+          <Header
+            currentTab={activeTab}
+            onSelectTab={setActiveTab}
+            onOpenNewFarmer={handleOpenNewFarmer}
+            onOpenNewLoan={() => {
+              setLoanModalFarmerId(undefined);
+              setIsLoanModalOpen(true);
+            }}
+            onOpenNewAsset={() => setIsInfrastructureModalOpen(true)}
+            onOpenNewOfficer={() => {
+              setEditingOfficer(null);
+              setIsOfficerModalOpen(true);
+            }}
+            onNavigateHome={() => setCurrentView('home')}
+            onNavigateFarmerPortal={() => {
+              setPortalFarmerPhone('');
+              setCurrentView('farmer-portal');
+            }}
+            currentOfficer={currentOfficer}
+            onLogoutOfficer={handleLogoutOfficer}
+          />
+
+          {/* Main Content Area */}
+          <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
         {loading && farmers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-stone-500 space-y-3">
             <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
@@ -255,6 +375,7 @@ export default function App() {
               <FarmersView
                 farmers={farmers}
                 loans={loans}
+                currentOfficer={currentOfficer}
                 onOpenNewFarmer={handleOpenNewFarmer}
                 onSelectFarmer={(f) => setSelectedFarmerForDetail(f)}
                 onEditFarmer={handleOpenEditFarmer}
@@ -267,6 +388,7 @@ export default function App() {
               <LoansView
                 loans={loans}
                 farmers={farmers}
+                currentOfficer={currentOfficer}
                 onOpenNewLoan={() => {
                   setLoanModalFarmerId(undefined);
                   setIsLoanModalOpen(true);
@@ -291,6 +413,23 @@ export default function App() {
                   setIsMaintenanceModalOpen(true);
                 }}
                 onDeleteAsset={handleDeleteAsset}
+              />
+            )}
+
+            {activeTab === 'officers' && (
+              <OfficersView
+                officers={officers}
+                currentOfficer={currentOfficer}
+                onOpenCreateOfficer={() => {
+                  setEditingOfficer(null);
+                  setIsOfficerModalOpen(true);
+                }}
+                onEditOfficer={(officer) => {
+                  setEditingOfficer(officer);
+                  setIsOfficerModalOpen(true);
+                }}
+                onToggleStatus={handleToggleOfficerStatus}
+                onDeleteOfficer={handleDeleteOfficer}
               />
             )}
 
@@ -393,6 +532,20 @@ export default function App() {
         onClose={() => setIsMaintenanceModalOpen(false)}
         onLog={handleLogMaintenance}
       />
+
+      {/* 9. Officer Creation & RBAC Permissions Modal */}
+      <OfficerModal
+        isOpen={isOfficerModalOpen}
+        onClose={() => {
+          setIsOfficerModalOpen(false);
+          setEditingOfficer(null);
+        }}
+        onSave={handleSaveOfficer}
+        editingOfficer={editingOfficer}
+        currentOfficer={currentOfficer}
+      />
+      </>
+      )}
     </div>
   );
 }

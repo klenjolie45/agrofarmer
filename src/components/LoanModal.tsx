@@ -30,7 +30,7 @@ export const LoanModal: React.FC<LoanModalProps> = ({
 }) => {
   const [farmerId, setFarmerId] = useState(selectedFarmerId || '');
   const [purpose, setPurpose] = useState<Loan['purpose']>('Seed & Fertilizer');
-  const [amountRequested, setAmountRequested] = useState<number>(3000);
+  const [amountRequested, setAmountRequested] = useState<number>(350000);
   const [interestRate, setInterestRate] = useState<number>(6.5);
   const [durationMonths, setDurationMonths] = useState<number>(6);
   const [repaymentFrequency, setRepaymentFrequency] = useState<Loan['repaymentFrequency']>('Monthly');
@@ -192,11 +192,11 @@ export const LoanModal: React.FC<LoanModalProps> = ({
             </div>
 
             <div>
-              <label className="block font-semibold text-stone-700 mb-1">Amount Requested ($ USD) *</label>
+              <label className="block font-semibold text-stone-700 mb-1">Amount Requested (₦ Naira) *</label>
               <input
                 type="number"
-                min="100"
-                step="50"
+                min="10000"
+                step="5000"
                 required
                 value={amountRequested}
                 onChange={e => setAmountRequested(parseFloat(e.target.value) || 0)}
@@ -254,20 +254,20 @@ export const LoanModal: React.FC<LoanModalProps> = ({
           <div className="p-4 rounded-xl bg-stone-50 border border-stone-200 space-y-2">
             <div className="flex items-center gap-1.5 font-bold text-stone-800 uppercase text-[10px] tracking-wider">
               <Calculator className="w-3.5 h-3.5 text-emerald-700" />
-              <span>Projected Repayment Schedule</span>
+              <span>Projected Repayment Schedule (₦ Naira)</span>
             </div>
             <div className="grid grid-cols-3 gap-2 text-center pt-1">
               <div className="bg-white p-2 rounded-lg border border-stone-200">
                 <span className="text-stone-400 block text-[10px]">Total Interest</span>
-                <span className="font-bold text-stone-800">${totalInterest.toFixed(2)}</span>
+                <span className="font-bold text-stone-800">₦{totalInterest.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="bg-white p-2 rounded-lg border border-stone-200">
                 <span className="text-stone-400 block text-[10px]">Total Repayable</span>
-                <span className="font-bold text-emerald-800">${totalRepayment.toFixed(2)}</span>
+                <span className="font-bold text-emerald-800">₦{totalRepayment.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="bg-white p-2 rounded-lg border border-stone-200">
                 <span className="text-stone-400 block text-[10px]">Per Installment ({installmentCount}x)</span>
-                <span className="font-bold text-stone-900">${perInstallmentAmount.toFixed(2)}</span>
+                <span className="font-bold text-stone-900">₦{perInstallmentAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
             </div>
           </div>

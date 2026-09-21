@@ -183,11 +183,11 @@ export const InfrastructureModal: React.FC<InfrastructureModalProps> = ({
             </div>
 
             <div>
-              <label className="block font-semibold text-stone-700 mb-1">Estimated Asset Value ($)</label>
+              <label className="block font-semibold text-stone-700 mb-1">Estimated Asset Value (₦ Naira)</label>
               <input
                 type="number"
                 min="0"
-                step="500"
+                step="50000"
                 value={formData.estimatedValueUsd}
                 onChange={e => setFormData({ ...formData, estimatedValueUsd: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-emerald-600 focus:outline-none font-bold"

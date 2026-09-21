@@ -97,11 +97,11 @@ export const MaintenanceModal: React.FC<MaintenanceModalProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-stone-700 mb-1">Service Cost ($ USD) *</label>
+              <label className="block font-semibold text-stone-700 mb-1">Service Cost (₦ Naira) *</label>
               <input
                 type="number"
                 min="0"
-                step="10"
+                step="500"
                 required
                 value={cost}
                 onChange={e => setCost(parseFloat(e.target.value) || 0)}

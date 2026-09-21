@@ -36,11 +36,11 @@ export const RepaymentModal: React.FC<RepaymentModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (amount <= 0) {
-      alert('Repayment amount must be greater than $0.');
+      alert('Repayment amount must be greater than ₦0.');
       return;
     }
     if (amount > loan.outstandingBalance) {
-      if (!window.confirm(`Amount ($${amount}) exceeds current outstanding balance ($${loan.outstandingBalance}). Proceed?`)) {
+      if (!window.confirm(`Amount (₦${amount.toLocaleString()}) exceeds current outstanding balance (₦${loan.outstandingBalance.toLocaleString()}). Proceed?`)) {
         return;
       }
     }
@@ -88,11 +88,11 @@ export const RepaymentModal: React.FC<RepaymentModalProps> = ({
         <div className="bg-stone-50 px-6 py-3 border-b border-stone-200 flex items-center justify-between text-xs">
           <div>
             <span className="text-stone-500 block text-[10px] uppercase font-semibold">Remaining Debt Balance</span>
-            <span className="text-base font-bold text-amber-700">${loan.outstandingBalance.toLocaleString()}</span>
+            <span className="text-base font-bold text-amber-700">₦{loan.outstandingBalance.toLocaleString()}</span>
           </div>
           <div className="text-right">
             <span className="text-stone-500 block text-[10px] uppercase font-semibold">Total Paid So Far</span>
-            <span className="text-sm font-bold text-emerald-700">${loan.totalRepaid.toLocaleString()}</span>
+            <span className="text-sm font-bold text-emerald-700">₦{loan.totalRepaid.toLocaleString()}</span>
           </div>
         </div>
 
@@ -100,15 +100,15 @@ export const RepaymentModal: React.FC<RepaymentModalProps> = ({
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="font-semibold text-stone-700">Repayment Amount ($ USD) *</label>
+              <label className="font-semibold text-stone-700">Repayment Amount (₦ Naira) *</label>
               <div className="flex gap-1.5">
                 {nextInstallment && (
                   <button
                     type="button"
-                    onClick={() => setAmount(Number((nextInstallment.amountDue - nextInstallment.amountPaid).toFixed(2)))}
+                    onClick={() => setAmount(Number((nextInstallment.amountDue - nextInstallment.amountPaid).toFixed(0)))}
                     className="text-[10px] px-1.5 py-0.5 rounded bg-stone-200 text-stone-700 hover:bg-stone-300 cursor-pointer"
                   >
-                    Installment (${(nextInstallment.amountDue - nextInstallment.amountPaid).toFixed(0)})
+                    Installment (₦{(nextInstallment.amountDue - nextInstallment.amountPaid).toLocaleString()})
                   </button>
                 )}
                 <button
@@ -122,8 +122,8 @@ export const RepaymentModal: React.FC<RepaymentModalProps> = ({
             </div>
             <input
               type="number"
-              step="1"
-              min="1"
+              step="100"
+              min="100"
               required
               value={amount}
               onChange={e => setAmount(parseFloat(e.target.value) || 0)}
@@ -138,9 +138,10 @@ export const RepaymentModal: React.FC<RepaymentModalProps> = ({
               onChange={e => setPaymentMethod(e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-stone-200 focus:ring-2 focus:ring-emerald-600 focus:outline-none bg-white font-medium"
             >
-              <option value="Mobile Money (M-Pesa)">Mobile Money (M-Pesa / MTN Mobile)</option>
-              <option value="Bank Transfer">Commercial Bank Direct Deposit</option>
-              <option value="Cash / Agent">Field Agent Cash Collection</option>
+              <option value="Bank Transfer">Direct Bank Transfer (NIBSS Instant / Interswitch)</option>
+              <option value="OPay / PalmPay">OPay / PalmPay / Moniepoint</option>
+              <option value="USSD">Bank USSD Transfer</option>
+              <option value="Cash / POS Agent">Field Agent POS / Cash Voucher</option>
               <option value="Harvest Deduction">Cooperative Harvest Offtake Deduction</option>
             </select>
           </div>

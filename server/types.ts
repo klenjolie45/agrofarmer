@@ -1,14 +1,29 @@
+export interface FarmerAsset {
+  id: string;
+  farmerId: string;
+  farmerName?: string;
+  assetName: string;
+  assetType: 'Tractor' | 'Solar Irrigation Pump' | 'Harvester' | 'Storage Silo / Crib' | 'Greenhouse' | 'Processing Mill' | 'Sprayer / Implement' | 'Power Tiller / Rotavator' | 'Other Machinery';
+  purchaseYear: number;
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Needs Repair';
+  estimatedValueNaira: number;
+  serialNumber?: string;
+  documentRef?: string;
+  specifications?: string;
+  registeredDate: string;
+}
+
 export interface Farmer {
   id: string;
   farmerCode: string;
   fullName: string;
-  nationalId: string;
+  nationalId: string; // NIN (National Identification Number)
   phone: string;
   email: string;
   gender: 'Male' | 'Female' | 'Other';
   dob: string;
-  region: string;
-  district: string;
+  region: string; // State (e.g. Kaduna, Ogun, Kano, Benue, Niger, Oyo)
+  district: string; // LGA (Local Government Area)
   village: string;
   farmSizeHectares: number;
   ownershipStatus: 'Owned' | 'Leased' | 'Communal' | 'Cooperative';
@@ -24,7 +39,9 @@ export interface Farmer {
   status: 'Active' | 'Inactive' | 'Suspended';
   creditRating: 'A+' | 'A' | 'B' | 'C' | 'Unrated';
   registeredAt: string;
+  pin?: string; // 4-digit PIN for self-service portal
   notes?: string;
+  assets?: FarmerAsset[];
 }
 
 export interface LoanInstallment {
@@ -40,7 +57,7 @@ export interface RepaymentRecord {
   id: string;
   amount: number;
   paymentDate: string;
-  paymentMethod: 'Mobile Money (M-Pesa)' | 'Bank Transfer' | 'Cash / Agent' | 'Harvest Deduction';
+  paymentMethod: 'Mobile Money (OPay / PalmPay / MoMo)' | 'Bank Transfer' | 'Cash / Agent' | 'Harvest Deduction';
   referenceNo: string;
   recordedBy: string;
   notes?: string;
@@ -97,7 +114,8 @@ export interface InfrastructureAsset {
   condition: 'Operational' | 'Needs Maintenance' | 'Critical Repair' | 'Under Construction';
   utilizationPercent: number;
   installationDate: string;
-  estimatedValueUsd: number;
+  estimatedValueUsd: number; // Kept for backwards compatibility
+  estimatedValueNaira: number;
   custodianType: 'Farmer Cooperative' | 'Community Water Board' | 'Municipal District' | 'Private-Public Entity';
   custodianName: string;
   custodianPhone: string;
@@ -112,11 +130,47 @@ export interface AuditLog {
   id: string;
   timestamp: string;
   action: string;
-  category: 'FARMER' | 'LOAN' | 'INFRASTRUCTURE' | 'SYSTEM';
+  category: 'FARMER' | 'LOAN' | 'INFRASTRUCTURE' | 'SYSTEM' | 'OFFICER' | 'SECURITY';
   entityId?: string;
   entityName?: string;
   details: string;
   performedBy: string;
+}
+
+export type OfficerRole = 
+  | 'SUPER_OFFICER' 
+  | 'CREDIT_OFFICER' 
+  | 'FIELD_OFFICER' 
+  | 'INFRASTRUCTURE_OFFICER' 
+  | 'AUDITOR';
+
+export type OfficerPermission =
+  | 'manage_officers'
+  | 'manage_farmers'
+  | 'delete_farmers'
+  | 'approve_loans'
+  | 'disburse_loans'
+  | 'record_repayments'
+  | 'manage_infrastructure'
+  | 'log_maintenance'
+  | 'view_audit_logs';
+
+export interface Officer {
+  id: string;
+  staffCode: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  password?: string;
+  role: OfficerRole;
+  roleTitle: string;
+  department: string;
+  assignedRegion: string;
+  permissions: OfficerPermission[];
+  status: 'Active' | 'Suspended';
+  createdAt: string;
+  lastLoginAt?: string;
+  avatarUrl?: string;
 }
 
 export interface SystemStats {
@@ -124,14 +178,19 @@ export interface SystemStats {
   activeFarmers: number;
   verifiedFarmers: number;
   totalLoansDisbursed: number;
-  totalCapitalDisbursedUsd: number;
+  totalCapitalDisbursedUsd: number; // Kept for backwards compat
+  totalCapitalDisbursedNaira: number;
   totalRepaidUsd: number;
+  totalRepaidNaira: number;
   outstandingDebtUsd: number;
+  outstandingDebtNaira: number;
   repaymentRatePercent: number;
   defaultedLoansCount: number;
   pendingLoanApplications: number;
   totalInfrastructureAssets: number;
   operationalInfrastructureCount: number;
   infrastructureValueUsd: number;
+  infrastructureValueNaira: number;
+  totalFarmerAssets: number;
   totalHectaresCultivated: number;
 }

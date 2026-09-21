@@ -14,12 +14,15 @@ import {
   Calendar,
   Layers,
   ChevronRight,
-  Calculator
+  Calculator,
+  Lock
 } from 'lucide-react';
+import { Officer } from '../types';
 
 interface LoansViewProps {
   loans: Loan[];
   farmers: Farmer[];
+  currentOfficer?: Officer | null;
   onOpenNewLoan: () => void;
   onSelectLoan: (loan: Loan) => void;
   onApproveLoan: (loan: Loan) => void;
@@ -30,6 +33,7 @@ interface LoansViewProps {
 export const LoansView: React.FC<LoansViewProps> = ({
   loans,
   farmers,
+  currentOfficer,
   onOpenNewLoan,
   onSelectLoan,
   onApproveLoan,
@@ -38,6 +42,13 @@ export const LoansView: React.FC<LoansViewProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  const canApprove = !currentOfficer || currentOfficer.role === 'SUPER_OFFICER' || 
+    (currentOfficer.permissions && currentOfficer.permissions.includes('approve_loans'));
+  const canDisburse = !currentOfficer || currentOfficer.role === 'SUPER_OFFICER' || 
+    (currentOfficer.permissions && currentOfficer.permissions.includes('disburse_loans'));
+  const canRepay = !currentOfficer || currentOfficer.role === 'SUPER_OFFICER' || 
+    (currentOfficer.permissions && currentOfficer.permissions.includes('record_repayments'));
 
   // Filtered loans
   const filteredLoans = useMemo(() => {
@@ -158,19 +169,19 @@ export const LoansView: React.FC<LoansViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-xs">
           <div className="text-[11px] font-medium text-stone-500 uppercase">Total Portfolio Volume</div>
-          <div className="text-xl font-bold text-stone-900 mt-0.5">${totalVolume.toLocaleString()}</div>
+          <div className="text-xl font-bold text-stone-900 mt-0.5">₦{totalVolume.toLocaleString()}</div>
           <div className="text-[11px] text-stone-400 mt-1">Disbursed and approved agricultural credit</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-xs">
           <div className="text-[11px] font-medium text-stone-500 uppercase">Total Recovered Repayments</div>
-          <div className="text-xl font-bold text-emerald-700 mt-0.5">${totalRepaid.toLocaleString()}</div>
+          <div className="text-xl font-bold text-emerald-700 mt-0.5">₦{totalRepaid.toLocaleString()}</div>
           <div className="text-[11px] text-stone-400 mt-1">Direct bank & mobile money deposits</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-xs">
           <div className="text-[11px] font-medium text-stone-500 uppercase">Outstanding Balance</div>
-          <div className="text-xl font-bold text-amber-700 mt-0.5">${totalOutstanding.toLocaleString()}</div>
+          <div className="text-xl font-bold text-amber-700 mt-0.5">₦{totalOutstanding.toLocaleString()}</div>
           <div className="text-[11px] text-stone-400 mt-1">Due according to installment schedules</div>
         </div>
       </div>
@@ -238,7 +249,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
                       {/* Credit Terms */}
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-stone-900 text-sm">
-                          ${(loan.amountApproved || loan.amountRequested).toLocaleString()}
+                          ₦{(loan.amountApproved || loan.amountRequested).toLocaleString()}
                         </div>
                         <div className="text-[11px] text-stone-500">
                           {loan.interestRate}% APR • {loan.durationMonths} Months
@@ -251,8 +262,8 @@ export const LoansView: React.FC<LoansViewProps> = ({
                       {/* Progress */}
                       <td className="py-3.5 px-4 min-w-[180px]">
                         <div className="flex justify-between text-[11px] font-semibold mb-1">
-                          <span className="text-emerald-700">${loan.totalRepaid.toLocaleString()}</span>
-                          <span className="text-stone-500">Bal: ${loan.outstandingBalance.toLocaleString()}</span>
+                          <span className="text-emerald-700">₦{loan.totalRepaid.toLocaleString()}</span>
+                          <span className="text-stone-500">Bal: ₦{loan.outstandingBalance.toLocaleString()}</span>
                         </div>
                         <div className="h-2 w-full bg-stone-100 rounded-full overflow-hidden">
                           <div
@@ -301,7 +312,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
                       {/* Actions */}
                       <td className="py-3.5 px-4 text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
-                          {loan.status === 'Pending' && (
+                          {loan.status === 'Pending' && canApprove && (
                             <button
                               onClick={() => onApproveLoan(loan)}
                               className="px-2.5 py-1 text-xs font-semibold rounded bg-emerald-700 hover:bg-emerald-800 text-white transition cursor-pointer shadow-xs"
@@ -310,7 +321,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
                             </button>
                           )}
 
-                          {loan.status === 'Approved' && (
+                          {loan.status === 'Approved' && canDisburse && (
                             <button
                               onClick={() => onDisburseLoan(loan)}
                               className="px-2.5 py-1 text-xs font-semibold rounded bg-emerald-600 hover:bg-emerald-500 text-white transition cursor-pointer shadow-xs"
@@ -319,7 +330,7 @@ export const LoansView: React.FC<LoansViewProps> = ({
                             </button>
                           )}
 
-                          {(loan.status === 'Repaying' || loan.status === 'Disbursed') && (
+                          {(loan.status === 'Repaying' || loan.status === 'Disbursed') && canRepay && (
                             <button
                               onClick={() => onOpenRepayModal(loan)}
                               className="px-2.5 py-1 text-xs font-semibold rounded bg-emerald-800 hover:bg-emerald-700 text-white transition cursor-pointer shadow-xs flex items-center gap-1"

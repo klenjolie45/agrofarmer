@@ -110,20 +110,20 @@ export const LoanDetailModal: React.FC<LoanDetailModalProps> = ({
             <div className="p-3 rounded-xl bg-stone-50 border border-stone-200">
               <span className="text-[10px] uppercase font-bold text-stone-500 block">Principal Amount</span>
               <div className="text-base font-bold text-stone-900 mt-0.5">
-                ${(loan.amountApproved || loan.amountRequested).toLocaleString()}
+                ₦{(loan.amountApproved || loan.amountRequested).toLocaleString()}
               </div>
               <span className="text-[10px] text-stone-400">{loan.interestRate}% APR • {loan.durationMonths}m</span>
             </div>
 
             <div className="p-3 rounded-xl bg-stone-50 border border-stone-200">
               <span className="text-[10px] uppercase font-bold text-stone-500 block">Total Repaid</span>
-              <div className="text-base font-bold text-emerald-700 mt-0.5">${loan.totalRepaid.toLocaleString()}</div>
+              <div className="text-base font-bold text-emerald-700 mt-0.5">₦{loan.totalRepaid.toLocaleString()}</div>
               <span className="text-[10px] text-stone-400">{percentRepaid}% Settled</span>
             </div>
 
             <div className="p-3 rounded-xl bg-stone-50 border border-stone-200">
               <span className="text-[10px] uppercase font-bold text-stone-500 block">Outstanding Balance</span>
-              <div className="text-base font-bold text-amber-700 mt-0.5">${loan.outstandingBalance.toLocaleString()}</div>
+              <div className="text-base font-bold text-amber-700 mt-0.5">₦{loan.outstandingBalance.toLocaleString()}</div>
               <span className="text-[10px] text-stone-400">Due: {loan.dueDate}</span>
             </div>
 
@@ -144,20 +144,20 @@ export const LoanDetailModal: React.FC<LoanDetailModalProps> = ({
               <div>
                 <span className="font-bold text-amber-900 block text-sm">Credit Committee Decision Needed</span>
                 <p className="text-xs text-amber-700 mt-0.5">
-                  Requested: ${loan.amountRequested.toLocaleString()}. Confirm or adjust approved capital.
+                  Requested: ₦{loan.amountRequested.toLocaleString()}. Confirm or adjust approved capital.
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1">
-                  <span className="text-stone-600 font-semibold text-[11px]">$</span>
+                  <span className="text-stone-600 font-semibold text-[11px]">₦</span>
                   <input
                     type="number"
-                    min="100"
-                    step="50"
+                    min="10000"
+                    step="5000"
                     value={approvedAmount || loan.amountRequested}
                     onChange={e => setApprovedAmount(parseFloat(e.target.value) || 0)}
-                    className="w-24 px-2 py-1 text-xs rounded border border-amber-300 bg-white font-bold text-stone-900"
+                    className="w-28 px-2 py-1 text-xs rounded border border-amber-300 bg-white font-bold text-stone-900"
                   />
                 </div>
                 <button
@@ -183,7 +183,7 @@ export const LoanDetailModal: React.FC<LoanDetailModalProps> = ({
               <div>
                 <span className="font-bold text-blue-900 block text-sm">Approved • Ready for Disbursement</span>
                 <p className="text-xs text-blue-700 mt-0.5">
-                  Approved amount of ${(loan.amountApproved || loan.amountRequested).toLocaleString()} is cleared for release.
+                  Approved amount of ₦{(loan.amountApproved || loan.amountRequested).toLocaleString()} is cleared for release.
                 </p>
               </div>
               <button
@@ -251,8 +251,8 @@ export const LoanDetailModal: React.FC<LoanDetailModalProps> = ({
                       <tr key={inst.installmentNumber} className="hover:bg-stone-50">
                         <td className="py-2.5 px-3 font-semibold text-stone-800">{inst.installmentNumber}</td>
                         <td className="py-2.5 px-3 text-stone-600">{inst.dueDate}</td>
-                        <td className="py-2.5 px-3 font-bold text-stone-900">${inst.amountDue.toFixed(2)}</td>
-                        <td className="py-2.5 px-3 text-emerald-700 font-semibold">${inst.amountPaid.toFixed(2)}</td>
+                        <td className="py-2.5 px-3 font-bold text-stone-900">₦{inst.amountDue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                        <td className="py-2.5 px-3 text-emerald-700 font-semibold">₦{inst.amountPaid.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
                         <td className="py-2.5 px-3">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                             inst.status === 'Paid'
@@ -283,7 +283,7 @@ export const LoanDetailModal: React.FC<LoanDetailModalProps> = ({
                 {loan.repayments.map(r => (
                   <div key={r.id} className="p-3 rounded-lg bg-stone-50 border border-stone-200 flex items-center justify-between text-xs">
                     <div>
-                      <div className="font-bold text-stone-900">${r.amount.toLocaleString()}</div>
+                      <div className="font-bold text-stone-900">₦{r.amount.toLocaleString()}</div>
                       <div className="text-[11px] text-stone-500">
                         {r.paymentDate} via {r.paymentMethod} • Ref: <span className="font-mono">{r.referenceNo}</span>
                       </div>

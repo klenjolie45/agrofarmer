@@ -50,9 +50,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const pendingLoans = loans.filter(l => l.status === 'Pending');
   const maintenanceAssets = infrastructure.filter(i => i.condition === 'Needs Maintenance' || i.condition === 'Critical Repair');
 
+  // Naira values with fallbacks
+  const disbursedNaira = summary.totalCapitalDisbursedNaira || summary.totalCapitalDisbursedUsd || 0;
+  const repaidNaira = summary.totalRepaidNaira || summary.totalRepaidUsd || 0;
+  const outstandingNaira = summary.outstandingDebtNaira || summary.outstandingDebtUsd || 0;
+  const infraValueNaira = summary.infrastructureValueNaira || summary.infrastructureValueUsd || 0;
+
   // Chart data calculations
-  const totalLoanVol = (summary.totalRepaidUsd + summary.outstandingDebtUsd) || 1;
-  const repaidPercent = Math.round((summary.totalRepaidUsd / totalLoanVol) * 100);
+  const totalLoanVol = (repaidNaira + outstandingNaira) || 1;
+  const repaidPercent = Math.round((repaidNaira / totalLoanVol) * 100);
   const outstandingPercent = 100 - repaidPercent;
 
   return (
@@ -65,11 +71,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-700/80 text-emerald-200 border border-emerald-600">
                 Live Operations
               </span>
-              <span className="text-xs text-emerald-300">Agricultural Season 2026</span>
+              <span className="text-xs text-emerald-300">Agricultural Season 2026 • Nigeria</span>
             </div>
             <h2 className="text-2xl font-bold tracking-tight">Agricultural Portfolio Overview</h2>
             <p className="text-sm text-emerald-200/90 mt-1 max-w-2xl">
-              Monitoring {summary.totalFarmers} registered farmers cultivating {summary.totalHectaresCultivated.toLocaleString()} hectares, ${summary.totalCapitalDisbursedUsd.toLocaleString()} in active agricultural credit, and {summary.totalInfrastructureAssets} regional storage & irrigation hubs.
+              Monitoring {summary.totalFarmers} registered farmers cultivating {summary.totalHectaresCultivated.toLocaleString()} hectares, ₦{disbursedNaira.toLocaleString()} in active agricultural credit, and {summary.totalInfrastructureAssets} regional storage & irrigation hubs.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -87,7 +93,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               className="px-4 py-2 rounded-lg bg-emerald-950/60 hover:bg-emerald-950 text-white font-semibold text-xs border border-emerald-600 transition cursor-pointer flex items-center gap-1.5"
             >
               <DollarSign className="w-3.5 h-3.5 text-emerald-300" />
-              <span>New Loan</span>
+              <span>New Loan (₦)</span>
             </button>
           </div>
         </div>
@@ -134,13 +140,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-stone-900">${summary.totalCapitalDisbursedUsd.toLocaleString()}</span>
+            <span className="text-2xl font-bold text-stone-900">₦{disbursedNaira.toLocaleString()}</span>
             <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
               {summary.repaymentRatePercent}% Repaid
             </span>
           </div>
           <div className="mt-3 pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
-            <span>Outstanding: ${summary.outstandingDebtUsd.toLocaleString()}</span>
+            <span>Outstanding: ₦{outstandingNaira.toLocaleString()}</span>
             <span className="text-emerald-700 font-medium flex items-center">
               Loans <ArrowRight className="w-3 h-3 ml-0.5" />
             </span>
@@ -166,7 +172,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </span>
           </div>
           <div className="mt-3 pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
-            <span>Valued at ${summary.infrastructureValueUsd.toLocaleString()}</span>
+            <span>Valued at ₦{infraValueNaira.toLocaleString()}</span>
             <span className="text-emerald-700 font-medium flex items-center">
               Assets <ArrowRight className="w-3 h-3 ml-0.5" />
             </span>
@@ -212,7 +218,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </span>
             </div>
             <p className="text-xs text-stone-500 mb-4">
-              Real-time ratio between total collected repayments vs active debt.
+              Real-time ratio between total collected repayments vs active debt in Naira.
             </p>
 
             {/* Split Visual Meter */}
@@ -221,22 +227,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div 
                   className="bg-emerald-600 h-full transition-all duration-500" 
                   style={{ width: `${repaidPercent}%` }}
-                  title={`Collected: $${summary.totalRepaidUsd.toLocaleString()} (${repaidPercent}%)`}
+                  title={`Collected: ₦${repaidNaira.toLocaleString()} (${repaidPercent}%)`}
                 ></div>
                 <div 
                   className="bg-amber-500 h-full transition-all duration-500" 
                   style={{ width: `${outstandingPercent}%` }}
-                  title={`Outstanding: $${summary.outstandingDebtUsd.toLocaleString()} (${outstandingPercent}%)`}
+                  title={`Outstanding: ₦${outstandingNaira.toLocaleString()} (${outstandingPercent}%)`}
                 ></div>
               </div>
               <div className="flex items-center justify-between text-xs text-stone-600">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-                  <span>Repaid: <strong>${summary.totalRepaidUsd.toLocaleString()}</strong></span>
+                  <span>Repaid: <strong>₦{repaidNaira.toLocaleString()}</strong></span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                  <span>Balance: <strong>${summary.outstandingDebtUsd.toLocaleString()}</strong></span>
+                  <span>Balance: <strong>₦{outstandingNaira.toLocaleString()}</strong></span>
                 </div>
               </div>
             </div>
@@ -249,7 +255,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <div key={purpose} className="flex items-center justify-between text-xs">
                     <span className="text-stone-600 truncate max-w-[180px]">{purpose}</span>
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-stone-900">${data.totalAmount.toLocaleString()}</span>
+                      <span className="font-semibold text-stone-900">₦{data.totalAmount.toLocaleString()}</span>
                       <span className="text-stone-400">({data.count})</span>
                     </div>
                   </div>
@@ -336,7 +342,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-bold text-stone-900">Infrastructure Health</h3>
               <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                ${(summary.infrastructureValueUsd / 1000).toFixed(0)}k Assets
+                ₦{(infraValueNaira / 1000000).toFixed(1)}M Assets
               </span>
             </div>
             <p className="text-xs text-stone-500 mb-3">
@@ -448,7 +454,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </td>
                     <td className="py-3 px-4 text-stone-700">{loan.purpose}</td>
                     <td className="py-3 px-4 font-bold text-stone-900">
-                      ${loan.amountRequested.toLocaleString()}
+                      ₦{loan.amountRequested.toLocaleString()}
                     </td>
                     <td className="py-3 px-4">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${

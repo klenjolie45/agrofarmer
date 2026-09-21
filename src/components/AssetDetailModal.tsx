@@ -91,7 +91,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
 
             <div className="p-3 rounded-xl bg-stone-50 border border-stone-200">
               <span className="text-[10px] uppercase font-bold text-stone-500 block">Asset Valuation</span>
-              <div className="font-bold text-emerald-800 text-sm mt-0.5">${asset.estimatedValueUsd.toLocaleString()}</div>
+              <div className="font-bold text-emerald-800 text-sm mt-0.5">₦{(asset.estimatedValueUsd || 0).toLocaleString()}</div>
               <span className="text-[10px] text-stone-400">Replacement Cost</span>
             </div>
           </div>
@@ -154,7 +154,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                     <div>
                       <div className="font-bold text-stone-900">{log.description}</div>
                       <div className="text-[11px] text-stone-500 mt-0.5">
-                        {log.date} by {log.technician} • Cost: <strong>${log.cost}</strong>
+                        {log.date} by {log.technician} • Cost: <strong>₦{log.cost.toLocaleString()}</strong>
                       </div>
                       {log.partsReplaced && (
                         <div className="text-[10px] text-stone-400 mt-0.5">

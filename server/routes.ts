@@ -310,11 +310,13 @@ apiRouter.post('/loans/:id/repay', (req: Request, res: Response) => {
 
     const updatedLoan = db.recordRepayment(
       req.params.id,
-      Number(amount),
-      paymentMethod || 'Mobile Money (M-Pesa)',
-      referenceNo || `TX-${Date.now().toString().slice(-6)}`,
-      recordedBy || 'Loan Officer',
-      notes
+      {
+        amount: Number(amount),
+        paymentMethod: paymentMethod || 'Bank Transfer',
+        referenceNo: referenceNo || `TX-${Date.now().toString().slice(-6)}`,
+        recordedBy: recordedBy || 'Loan Officer',
+        notes
+      }
     );
 
     if (!updatedLoan) {
@@ -494,4 +496,372 @@ apiRouter.get('/export', (_req: Request, res: Response) => {
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Content-Disposition', 'attachment; filename="agricore_backup.json"');
   res.send(JSON.stringify(db.getRawDatabase(), null, 2));
+});
+
+// ================= FARMER SELF-SERVICE PORTAL ENDPOINTS =================
+
+// Farmer Portal Login via Phone or NIN (National ID)
+apiRouter.post('/farmer/login', (req: Request, res: Response) => {
+  try {
+    const { identifier, pin } = req.body;
+    if (!identifier) {
+      res.status(400).json({ error: 'Phone number or NIN is required' });
+      return;
+    }
+
+    const farmer = db.getFarmerByLogin(identifier, pin);
+    if (!farmer) {
+      res.status(401).json({ error: 'Invalid Phone Number, NIN or 4-digit PIN' });
+      return;
+    }
+
+    const loans = db.getLoans({ farmerId: farmer.id });
+    const assets = db.getFarmerAssets(farmer.id);
+
+    res.json({
+      success: true,
+      farmer,
+      loans,
+      assets
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Farmer Self-Registration
+apiRouter.post('/farmer/register', (req: Request, res: Response) => {
+  try {
+    const {
+      fullName,
+      nationalId,
+      phone,
+      email,
+      gender,
+      dob,
+      region,
+      district,
+      village,
+      farmSizeHectares,
+      ownershipStatus,
+      primaryCrops,
+      secondaryCrops,
+      soilType,
+      irrigationType,
+      cooperativeName,
+      bankName,
+      accountNumber,
+      pin
+    } = req.body;
+
+    if (!fullName || !phone) {
+      res.status(400).json({ error: 'Full name and phone number are required' });
+      return;
+    }
+
+    // Check duplicate phone or NIN
+    const existing = db.getFarmerByLogin(phone);
+    if (existing) {
+      res.status(400).json({ error: 'A farmer with this phone number is already registered' });
+      return;
+    }
+
+    const createdFarmer = db.createFarmer({
+      fullName,
+      nationalId: nationalId || `NIN-${Date.now().toString().slice(-11)}`,
+      phone,
+      email: email || '',
+      gender: gender || 'Male',
+      dob: dob || '1990-01-01',
+      region: region || 'Kaduna State',
+      district: district || 'Giwa LGA',
+      village: village || 'Central Village',
+      farmSizeHectares: Number(farmSizeHectares) || 2.0,
+      ownershipStatus: ownershipStatus || 'Owned',
+      primaryCrops: Array.isArray(primaryCrops) ? primaryCrops : (primaryCrops ? [primaryCrops] : ['Maize']),
+      secondaryCrops: Array.isArray(secondaryCrops) ? secondaryCrops : (secondaryCrops ? [secondaryCrops] : []),
+      soilType: soilType || 'Loamy',
+      irrigationType: irrigationType || 'Rainfed',
+      cooperativeName: cooperativeName || 'Independent Farmer',
+      bankName: bankName || 'First Bank of Nigeria',
+      accountNumber: accountNumber || '',
+      kycStatus: 'Pending',
+      status: 'Active',
+      creditRating: 'B',
+      pin: pin || '1234'
+    }, `${fullName} (Self-Registered)`);
+
+    res.status(201).json({
+      success: true,
+      farmer: createdFarmer,
+      loans: [],
+      assets: []
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Farmer Portal Dashboard data
+apiRouter.get('/farmer/:id/dashboard', (req: Request, res: Response) => {
+  try {
+    const farmer = db.getFarmerById(req.params.id);
+    if (!farmer) {
+      res.status(404).json({ error: 'Farmer profile not found' });
+      return;
+    }
+
+    const loans = db.getLoans({ farmerId: farmer.id });
+    const assets = db.getFarmerAssets(farmer.id);
+
+    const activeDebtNaira = loans
+      .filter(l => ['Disbursed', 'Repaying'].includes(l.status))
+      .reduce((sum, l) => sum + (l.outstandingBalance || 0), 0);
+
+    const totalRepaidNaira = loans.reduce((sum, l) => sum + (l.totalRepaid || 0), 0);
+    const totalAssetsNaira = assets.reduce((sum, a) => sum + (a.estimatedValueNaira || 0), 0);
+
+    res.json({
+      farmer,
+      loans,
+      assets,
+      stats: {
+        totalLoans: loans.length,
+        activeLoansCount: loans.filter(l => ['Disbursed', 'Repaying'].includes(l.status)).length,
+        pendingLoansCount: loans.filter(l => l.status === 'Pending').length,
+        activeDebtNaira,
+        totalRepaidNaira,
+        totalAssetsCount: assets.length,
+        totalAssetsNaira
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Farmer Self-Service Loan Application
+apiRouter.post('/farmer/apply-loan', (req: Request, res: Response) => {
+  try {
+    const {
+      farmerId,
+      purpose,
+      amountRequested,
+      durationMonths,
+      repaymentFrequency,
+      collateralDescription,
+      guarantorName,
+      guarantorPhone,
+      notes
+    } = req.body;
+
+    if (!farmerId || !purpose || !amountRequested) {
+      res.status(400).json({ error: 'Farmer ID, purpose, and requested amount are required' });
+      return;
+    }
+
+    const farmer = db.getFarmerById(farmerId);
+    if (!farmer) {
+      res.status(404).json({ error: 'Farmer not found' });
+      return;
+    }
+
+    const newLoan = db.createLoan({
+      farmerId,
+      purpose,
+      amountRequested: Number(amountRequested),
+      interestRate: 6.5,
+      durationMonths: Number(durationMonths) || 6,
+      repaymentFrequency: repaymentFrequency || 'Monthly',
+      collateralDescription,
+      guarantorName: guarantorName || farmer.cooperativeName,
+      guarantorPhone,
+      notes
+    }, `${farmer.fullName} (Farmer Portal)`);
+
+    res.status(201).json(newLoan);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Farmer Asset Upload & Management
+apiRouter.get('/farmer/:id/assets', (req: Request, res: Response) => {
+  try {
+    const assets = db.getFarmerAssets(req.params.id);
+    res.json(assets);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+apiRouter.post('/farmer/assets', (req: Request, res: Response) => {
+  try {
+    const {
+      farmerId,
+      assetName,
+      assetType,
+      purchaseYear,
+      condition,
+      estimatedValueNaira,
+      serialNumber,
+      documentRef,
+      specifications
+    } = req.body;
+
+    if (!farmerId || !assetName || !estimatedValueNaira) {
+      res.status(400).json({ error: 'Farmer ID, asset name, and estimated value in Naira are required' });
+      return;
+    }
+
+    const farmer = db.getFarmerById(farmerId);
+    const newAsset = db.createFarmerAsset({
+      farmerId,
+      farmerName: farmer?.fullName,
+      assetName,
+      assetType,
+      purchaseYear: Number(purchaseYear) || new Date().getFullYear(),
+      condition: condition || 'Good',
+      estimatedValueNaira: Number(estimatedValueNaira),
+      serialNumber,
+      documentRef,
+      specifications
+    }, farmer ? `${farmer.fullName} (Farmer Portal)` : 'Farmer');
+
+    res.status(201).json(newAsset);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+apiRouter.delete('/farmer/:farmerId/assets/:assetId', (req: Request, res: Response) => {
+  try {
+    const { farmerId, assetId } = req.params;
+    const success = db.deleteFarmerAsset(assetId, farmerId);
+    if (!success) {
+      res.status(404).json({ error: 'Asset not found or access denied' });
+      return;
+    }
+    res.json({ success: true, message: 'Asset deleted successfully' });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================
+// OFFICER & ROLE-BASED ACCESS CONTROL (RBAC)
+// ==========================================
+
+// Officer Login Authentication
+apiRouter.post('/officers/login', (req: Request, res: Response) => {
+  try {
+    const { identifier, password } = req.body;
+    if (!identifier || !password) {
+      res.status(400).json({ error: 'Email / Staff Code and password are required' });
+      return;
+    }
+
+    const authResult = db.authenticateOfficer(identifier, password);
+    if (!authResult) {
+      res.status(401).json({ error: 'Invalid officer credentials or incorrect password' });
+      return;
+    }
+
+    res.json(authResult);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Get all officers (passwords stripped)
+apiRouter.get('/officers', (_req: Request, res: Response) => {
+  try {
+    const officers = db.getOfficers();
+    res.json(officers);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get officer by ID
+apiRouter.get('/officers/:id', (req: Request, res: Response) => {
+  try {
+    const officer = db.getOfficerById(req.params.id);
+    if (!officer) {
+      res.status(404).json({ error: 'Officer not found' });
+      return;
+    }
+    res.json(officer);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new officer (with assigned role & permissions)
+apiRouter.post('/officers', (req: Request, res: Response) => {
+  try {
+    const {
+      fullName,
+      email,
+      phone,
+      password,
+      role,
+      roleTitle,
+      department,
+      assignedRegion,
+      permissions,
+      status,
+      staffCode,
+      performedBy
+    } = req.body;
+
+    if (!fullName || !email || !role) {
+      res.status(400).json({ error: 'Full name, email, and role are required' });
+      return;
+    }
+
+    const newOfficer = db.createOfficer({
+      fullName,
+      email,
+      phone,
+      password,
+      role,
+      roleTitle,
+      department,
+      assignedRegion,
+      permissions,
+      status,
+      staffCode
+    }, performedBy || 'Super Officer');
+
+    res.status(201).json(newOfficer);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Update officer
+apiRouter.put('/officers/:id', (req: Request, res: Response) => {
+  try {
+    const { performedBy, ...updates } = req.body;
+    const updated = db.updateOfficer(req.params.id, updates, performedBy || 'Super Officer');
+    res.json(updated);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Delete officer
+apiRouter.delete('/officers/:id', (req: Request, res: Response) => {
+  try {
+    const performedBy = (req.query.performedBy as string) || 'Super Officer';
+    const deleted = db.deleteOfficer(req.params.id, performedBy);
+    if (!deleted) {
+      res.status(404).json({ error: 'Officer not found' });
+      return;
+    }
+    res.json({ success: true, message: 'Officer removed successfully' });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
 });

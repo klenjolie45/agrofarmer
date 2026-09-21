@@ -204,10 +204,10 @@ export const FarmerDetailModal: React.FC<FarmerDetailModalProps> = ({
                         <td className="py-2.5 px-3 font-mono font-semibold text-stone-900">{l.loanCode}</td>
                         <td className="py-2.5 px-3 text-stone-700">{l.purpose}</td>
                         <td className="py-2.5 px-3 font-bold text-stone-900">
-                          ${(l.amountApproved || l.amountRequested).toLocaleString()}
+                          ₦{(l.amountApproved || l.amountRequested).toLocaleString()}
                         </td>
-                        <td className="py-2.5 px-3 text-emerald-700 font-medium">${l.totalRepaid.toLocaleString()}</td>
-                        <td className="py-2.5 px-3 text-amber-700 font-medium">${l.outstandingBalance.toLocaleString()}</td>
+                        <td className="py-2.5 px-3 text-emerald-700 font-medium">₦{l.totalRepaid.toLocaleString()}</td>
+                        <td className="py-2.5 px-3 text-amber-700 font-medium">₦{l.outstandingBalance.toLocaleString()}</td>
                         <td className="py-2.5 px-3">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                             l.status === 'Completed'

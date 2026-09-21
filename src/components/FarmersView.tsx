@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Farmer, Loan } from '../types';
+import { Farmer, Loan, Officer } from '../types';
 import { 
   Search, 
   Filter, 
@@ -22,6 +22,7 @@ import {
 interface FarmersViewProps {
   farmers: Farmer[];
   loans: Loan[];
+  currentOfficer?: Officer | null;
   onOpenNewFarmer: () => void;
   onEditFarmer: (farmer: Farmer) => void;
   onDeleteFarmer: (id: string) => void;
@@ -32,6 +33,7 @@ interface FarmersViewProps {
 export const FarmersView: React.FC<FarmersViewProps> = ({
   farmers,
   loans,
+  currentOfficer,
   onOpenNewFarmer,
   onEditFarmer,
   onDeleteFarmer,
@@ -43,6 +45,11 @@ export const FarmersView: React.FC<FarmersViewProps> = ({
   const [selectedKyc, setSelectedKyc] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
+
+  const canManageFarmers = !currentOfficer || currentOfficer.role === 'SUPER_OFFICER' || 
+    (currentOfficer.permissions && currentOfficer.permissions.includes('manage_farmers'));
+  const canDeleteFarmers = !currentOfficer || currentOfficer.role === 'SUPER_OFFICER' || 
+    (currentOfficer.permissions && currentOfficer.permissions.includes('delete_farmers'));
 
   // Derive unique regions for filter
   const regions = useMemo(() => {
@@ -128,14 +135,16 @@ export const FarmersView: React.FC<FarmersViewProps> = ({
             <span>Export CSV</span>
           </button>
 
-          <button
-            id="btn-register-farmer"
-            onClick={onOpenNewFarmer}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-sm transition cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Register New Farmer</span>
-          </button>
+          {canManageFarmers && (
+            <button
+              id="btn-register-farmer"
+              onClick={onOpenNewFarmer}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-sm transition cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Register New Farmer</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -347,24 +356,30 @@ export const FarmersView: React.FC<FarmersViewProps> = ({
                           >
                             <DollarSign className="w-3.5 h-3.5" />
                           </button>
-                          <button
-                            title="Edit Farmer Profile"
-                            onClick={() => onEditFarmer(farmer)}
-                            className="p-1.5 rounded-md hover:bg-stone-200 text-stone-600 transition cursor-pointer"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            title="Delete Farmer"
-                            onClick={() => {
-                              if (window.confirm(`Are you sure you want to delete ${farmer.fullName}?`)) {
-                                onDeleteFarmer(farmer.id);
-                              }
-                            }}
-                            className="p-1.5 rounded-md hover:bg-rose-100 text-rose-600 transition cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+
+                          {canManageFarmers && (
+                            <button
+                              title="Edit Farmer Profile"
+                              onClick={() => onEditFarmer(farmer)}
+                              className="p-1.5 rounded-md hover:bg-stone-200 text-stone-600 transition cursor-pointer"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
+                          {canDeleteFarmers && (
+                            <button
+                              title="Delete Farmer"
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete ${farmer.fullName}?`)) {
+                                  onDeleteFarmer(farmer.id);
+                                }
+                              }}
+                              className="p-1.5 rounded-md hover:bg-rose-100 text-rose-600 transition cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
