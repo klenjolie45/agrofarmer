@@ -135,35 +135,18 @@ export const Homepage: React.FC<HomepageProps> = ({
                 </button>
               </div>
 
-              {/* Quick Demo Login Bar for Testing 
+              {/* Quick Demo Login Bar for Testing */}
               <div className="p-3.5 bg-emerald-900/5 rounded-xl border border-emerald-700/15 max-w-xl">
                 <p className="text-xs font-bold text-emerald-950 mb-2 flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
-                  <span>Try Instant Farmer Portal Login:</span>
+                  <span> </span>
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => onQuickLoginFarmer('08032194481')}
-                    className="text-xs px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-900 border border-emerald-300 rounded-md font-medium transition cursor-pointer shadow-2xs"
-                  >
-                    Amara Okafor (Kaduna - 12.5 ha)
-                  </button>
-                  <button
-                    onClick={() => onQuickLoginFarmer('08123456789')}
-                    className="text-xs px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-900 border border-emerald-300 rounded-md font-medium transition cursor-pointer shadow-2xs"
-                  >
-                    Ibrahim Garba (Kano - 24 ha)
-                  </button>
-                  <button
-                    onClick={() => onQuickLoginFarmer('08055678901')}
-                    className="text-xs px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-900 border border-emerald-300 rounded-md font-medium transition cursor-pointer shadow-2xs"
-                  >
-                    Oluwaseun Adeleke (Ogun - 8.5 ha)
-                  </button>
+                 
                 </div>
               </div>
             </div>
-            */}
+            
             {/* Right Column: Live Metric Cards */}
             <div className="lg:col-span-5 space-y-4">
               <div className="bg-white p-6 rounded-2xl border border-emerald-800/15 shadow-md space-y-5">
