@@ -53,7 +53,7 @@ export const Homepage: React.FC<HomepageProps> = ({
           </div>
           <div className="flex items-center gap-4 text-[11px]">
             <span>Currency: <strong>Nigerian Naira (₦ NGN)</strong></span>
-            <span className="hidden md:inline">• Support Hotline: 0800-AGRI-CORE</span>
+            <span className="hidden md:inline">• Support Hotline: 0800-AGRI-PRODUCE</span>
           </div>
         </div>
       </div>
@@ -238,7 +238,7 @@ export const Homepage: React.FC<HomepageProps> = ({
               Designed for Nigerian Smallholders, Cooperatives & Agribusinesses
             </h2>
             <p className="text-stone-600 text-sm mt-2">
-              Everything required to document land tenure, secure capital in Naira, and manage post-harvest value addition.
+              Everything required to document land tenure, secure capital, and manage post-harvest value addition.
             </p>
           </div>
 
@@ -272,7 +272,7 @@ export const Homepage: React.FC<HomepageProps> = ({
               </div>
               <h3 className="font-bold text-stone-900 text-base">Naira Micro-Loans & Input Credit</h3>
               <p className="text-stone-600 text-xs leading-relaxed">
-                Apply directly for subsidized financing for seeds, fertilizer, solar pumps, or tractor hire in Nigerian Naira (₦). View automated monthly or seasonal harvest schedules.
+                Apply directly for subsidized financing for seeds, fertilizer, solar pumps, or tractor hire in Nigeria. View automated monthly or seasonal harvest schedules.
               </p>
               <ul className="text-xs text-stone-500 space-y-1.5 pt-1">
                 <li className="flex items-center gap-1.5">
@@ -344,9 +344,9 @@ export const Homepage: React.FC<HomepageProps> = ({
               <div className="w-8 h-8 rounded-full bg-emerald-800 text-white font-bold text-xs flex items-center justify-center">
                 3
               </div>
-              <h4 className="font-bold text-stone-900 text-sm">Apply for Credit in Naira</h4>
+              <h4 className="font-bold text-stone-900 text-sm">Apply for Credit</h4>
               <p className="text-stone-500 text-xs">
-                Submit a loan application for seeds, fertilizer, or mechanization in ₦. Track approval and disburse directly to your bank or mobile wallet.
+                Submit a loan application for seeds, fertilizer, or mechanization. Track approval and disburse directly to your bank or mobile wallet.
               </p>
             </div>
           </div>
