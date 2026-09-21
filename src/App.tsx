@@ -38,7 +38,7 @@ export default function App() {
   // Officer Authentication State
   const [currentOfficer, setCurrentOfficer] = useState<Officer | null>(() => {
     try {
-      const stored = localStorage.getItem('agricore_officer');
+      const stored = localStorage.getItem('_officer');
       return stored ? JSON.parse(stored) : null;
     } catch {
       return null;
@@ -107,7 +107,7 @@ export default function App() {
       setOfficers(officersData);
     } catch (err: any) {
       console.error('Error loading data:', err);
-      setError(err.message || 'Failed to connect to AgriCore API backend.');
+      setError(err.message || 'Failed to connect to  API backend.');
     } finally {
       setLoading(false);
     }
@@ -228,7 +228,7 @@ export default function App() {
       if (currentOfficer?.id === updated.id) {
         setCurrentOfficer(updated);
         try {
-          localStorage.setItem('agricore_officer', JSON.stringify(updated));
+          localStorage.setItem('_officer', JSON.stringify(updated));
         } catch (e) {}
       }
     } else {
@@ -265,7 +265,7 @@ export default function App() {
   const handleLogoutOfficer = () => {
     setCurrentOfficer(null);
     try {
-      localStorage.removeItem('agricore_officer');
+      localStorage.removeItem('_officer');
     } catch (e) {}
     showToast('Logged out of Officer ERP.');
   };
@@ -304,7 +304,7 @@ export default function App() {
           onLoginSuccess={(officer, _token) => {
             setCurrentOfficer(officer);
             try {
-              localStorage.setItem('agricore_officer', JSON.stringify(officer));
+              localStorage.setItem('_officer', JSON.stringify(officer));
             } catch (e) {}
             showToast(`Welcome back, ${officer.fullName}! Logged in as ${officer.roleTitle}.`);
           }}
@@ -340,7 +340,7 @@ export default function App() {
         {loading && farmers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-stone-500 space-y-3">
             <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-xs font-medium">Connecting to AgriCore Agricultural Database...</p>
+            <p className="text-xs font-medium">Connecting to  Agricultural Database...</p>
           </div>
         ) : error ? (
           <div className="p-6 bg-rose-50 border border-rose-200 rounded-xl text-center max-w-lg mx-auto my-12">
@@ -444,7 +444,7 @@ export default function App() {
       <footer className="bg-white border-t border-stone-200 py-4 px-6 text-center text-xs text-stone-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2 font-medium">
-            <span>AgriCore Smallholder ERP & Microfinance Engine</span>
+            <span>AgroProduce Smallholder ERP & Microfinance Engine</span>
             <span>•</span>
             <span className="text-emerald-700 font-semibold">Render Deployment Ready</span>
           </div>
