@@ -48,7 +48,7 @@ export const Homepage: React.FC<HomepageProps> = ({
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
           <div className="flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="font-semibold text-white">AgriCore Nigeria</span>
+            <span className="font-semibold text-white">AgriProduce Nigeria</span>
             <span>• Digital Agriculture & Micro-Credit Infrastructure</span>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
@@ -67,7 +67,7 @@ export const Homepage: React.FC<HomepageProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xl font-bold tracking-tight text-emerald-950">AgriCore</span>
+                <span className="text-xl font-bold tracking-tight text-emerald-950">AgriProduce</span>
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
                   Nigeria
                 </span>
@@ -108,11 +108,11 @@ export const Homepage: React.FC<HomepageProps> = ({
               </div>
 
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-stone-900 tracking-tight leading-[1.18]">
-                Smart Agricultural Credit, Asset Registry & Farm Management in <span className="text-emerald-700 underline decoration-emerald-400 decoration-wavy underline-offset-6">Naira (₦)</span>
+                Smart Agricultural Credit, Asset Registry & Farm Management in <span className="text-emerald-700 underline decoration-emerald-400 decoration-wavy underline-offset-6">Nigeria</span>
               </h1>
 
               <p className="text-stone-600 text-base sm:text-lg leading-relaxed max-w-2xl">
-                AgriCore connects individual Nigerian smallholders and cooperatives to flexible input financing, machinery assets, and grain infrastructure. Register your farm online, apply for micro-credit, and manage your equipment all in one platform.
+                AgriProduce connects individual Nigerian smallholders and cooperatives to flexible input financing, machinery assets, and grain infrastructure. Register your farm online, apply for micro-credit, and manage your equipment all in one platform.
               </p>
 
               {/* Action Buttons */}
@@ -136,7 +136,7 @@ export const Homepage: React.FC<HomepageProps> = ({
               </div>
 
               {/* Quick Demo Login Bar for Testing */}
-              <div className="p-3.5 bg-emerald-900/5 rounded-xl border border-emerald-700/15 max-w-xl">
+              {/* <div className="p-3.5 bg-emerald-900/5 rounded-xl border border-emerald-700/15 max-w-xl">
                 <p className="text-xs font-bold text-emerald-950 mb-2 flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
                   <span>Try Instant Farmer Portal Login:</span>
@@ -162,7 +162,7 @@ export const Homepage: React.FC<HomepageProps> = ({
                   </button>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Right Column: Live Metric Cards */}
             <div className="lg:col-span-5 space-y-4">
@@ -361,7 +361,7 @@ export const Homepage: React.FC<HomepageProps> = ({
               <Sprout className="w-4 h-4 text-emerald-300" />
             </div>
             <div>
-              <p className="text-white font-bold">AgriCore Agricultural Management System</p>
+              <p className="text-white font-bold">AgriProduce Agricultural Management System</p>
               <p className="text-[11px] text-stone-500">Nigeria Smallholder Inclusion & Infrastructure Platform</p>
             </div>
           </div>
