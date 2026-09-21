@@ -48,12 +48,12 @@ export const Homepage: React.FC<HomepageProps> = ({
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
           <div className="flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="font-semibold text-white">AgriProduce Nigeria</span>
+            <span className="font-semibold text-white">AgroProduce Nigeria</span>
             <span>• Digital Agriculture & Micro-Credit Infrastructure</span>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
             <span>Currency: <strong>Nigerian Naira (₦ NGN)</strong></span>
-            <span className="hidden md:inline">• Support Hotline: 0800-AGRI-PRODUCE</span>
+            <span className="hidden md:inline">• Support Hotline: 0800-AGRO-PRODUCE</span>
           </div>
         </div>
       </div>
@@ -67,7 +67,7 @@ export const Homepage: React.FC<HomepageProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xl font-bold tracking-tight text-emerald-950">AgriProduce</span>
+                <span className="text-xl font-bold tracking-tight text-emerald-950">AgroProduce</span>
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
                   Nigeria
                 </span>
@@ -112,7 +112,7 @@ export const Homepage: React.FC<HomepageProps> = ({
               </h1>
 
               <p className="text-stone-600 text-base sm:text-lg leading-relaxed max-w-2xl">
-                AgriProduce connects individual Nigerian smallholders and cooperatives to flexible input financing, machinery assets, and grain infrastructure. Register your farm online, apply for micro-credit, and manage your equipment all in one platform.
+                AgroProduce connects individual Nigerian smallholders and cooperatives to flexible input financing, machinery assets, and grain infrastructure. Register your farm online, apply for micro-credit, and manage your equipment all in one platform.
               </p>
 
               {/* Action Buttons */}
@@ -344,7 +344,7 @@ export const Homepage: React.FC<HomepageProps> = ({
               <Sprout className="w-4 h-4 text-emerald-300" />
             </div>
             <div>
-              <p className="text-white font-bold">AgriProduce Agricultural Management System</p>
+              <p className="text-white font-bold">AgroProduce Agricultural Management System</p>
               <p className="text-[11px] text-stone-500">Nigeria Smallholder Inclusion & Infrastructure Platform</p>
             </div>
           </div>
