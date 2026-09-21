@@ -40,7 +40,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-sm text-stone-600 font-medium">Loading AgriCore operational metrics...</p>
+          <p className="text-sm text-stone-600 font-medium">Loading AgroProduce operational metrics...</p>
         </div>
       </div>
     );
