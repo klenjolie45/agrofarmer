@@ -446,38 +446,6 @@ export const FarmerPortal: React.FC<FarmerPortalProps> = ({
 
                   {/* Fast Demo Logins */}
                   <div className="mt-6 pt-5 border-t border-stone-200">
-                    <p className="text-[11px] font-bold text-stone-500 mb-2 text-center uppercase tracking-wider">
-                      Quick Demo Accounts (1-Click)
-                    </p>
-                    <div className="flex flex-col gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handlePerformLogin('08032194481', '1234')}
-                        className="text-left p-2.5 rounded-lg border border-stone-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition text-xs cursor-pointer flex items-center justify-between"
-                      >
-                        <div>
-                          <p className="font-semibold text-stone-900">Amara Okafor</p>
-                          <p className="text-[11px] text-stone-500">08032194481 • Kaduna State (12.5 ha)</p>
-                        </div>
-                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
-                          Tier A+
-                        </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handlePerformLogin('08123456789', '1234')}
-                        className="text-left p-2.5 rounded-lg border border-stone-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition text-xs cursor-pointer flex items-center justify-between"
-                      >
-                        <div>
-                          <p className="font-semibold text-stone-900">Ibrahim Babangida Garba</p>
-                          <p className="text-[11px] text-stone-500">08123456789 • Kano State (24 ha)</p>
-                        </div>
-                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
-                          Tier A
-                        </span>
-                      </button>
-                    </div>
                   </div>
                 </form>
               ) : (
@@ -486,7 +454,7 @@ export const FarmerPortal: React.FC<FarmerPortalProps> = ({
                   <div className="text-center mb-4">
                     <h2 className="text-lg font-bold text-stone-900">Register as an Individual Farmer</h2>
                     <p className="text-xs text-stone-500 mt-0.5">
-                      Join the AgriCore network to access micro-loans in Naira and catalog farm assets.
+                      Join the AgriProduce network to access micro-loans in Naira and catalog farm assets.
                     </p>
                   </div>
 
