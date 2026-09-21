@@ -168,12 +168,13 @@ export const OfficerLogin: React.FC<OfficerLoginProps> = ({ onLoginSuccess, onRe
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span>Role-based permissions dynamically filter actions across Loans, Farmers, & Silos.</span>
               </div>
+              <div className="mt-6 pt-4 border-t border-stone-800/80 text-[11px] text-stone-400 flex items-center justify-between">
+                <span>AgriProduce Security Framework v2.4</span>
+                <span>All sessions logged to Audit Trail</span>
+              </div>
             </div>
           </div>
-          <div className="mt-6 pt-4 border-t border-stone-800/80 text-[11px] text-stone-400 flex items-center justify-between">
-              <span>AgriProduce Security Framework v2.4</span>
-              <span>All sessions logged to Audit Trail</span>
-            </div>
+          
         </div>
       </div>
 
