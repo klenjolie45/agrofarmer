@@ -1,0 +1,6 @@
+{
+  "name": "AgriCore Management System",
+  "description": "Enterprise agricultural management platform for farmer registration, micro-loans, agricultural infrastructure assets, and portfolio analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

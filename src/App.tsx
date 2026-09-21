@@ -1,0 +1,398 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  Farmer, 
+  Loan, 
+  InfrastructureAsset, 
+  AuditLog, 
+  SystemSummary 
+} from './types';
+import { api } from './api';
+import { Header } from './components/Header';
+import { Dashboard } from './components/Dashboard';
+import { FarmersView } from './components/FarmersView';
+import { LoansView } from './components/LoansView';
+import { InfrastructureView } from './components/InfrastructureView';
+import { AuditLogsView } from './components/AuditLogsView';
+
+// Modals
+import { FarmerModal } from './components/FarmerModal';
+import { FarmerDetailModal } from './components/FarmerDetailModal';
+import { LoanModal } from './components/LoanModal';
+import { LoanDetailModal } from './components/LoanDetailModal';
+import { RepaymentModal } from './components/RepaymentModal';
+import { InfrastructureModal } from './components/InfrastructureModal';
+import { AssetDetailModal } from './components/AssetDetailModal';
+import { MaintenanceModal } from './components/MaintenanceModal';
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'farmers' | 'loans' | 'infrastructure' | 'audit'>('dashboard');
+
+  // Main Data States
+  const [farmers, setFarmers] = useState<Farmer[]>([]);
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [infrastructure, setInfrastructure] = useState<InfrastructureAsset[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [summary, setSummary] = useState<SystemSummary | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Modal States
+  const [isFarmerModalOpen, setIsFarmerModalOpen] = useState(false);
+  const [editingFarmer, setEditingFarmer] = useState<Farmer | null>(null);
+  const [selectedFarmerForDetail, setSelectedFarmerForDetail] = useState<Farmer | null>(null);
+
+  const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
+  const [loanModalFarmerId, setLoanModalFarmerId] = useState<string | undefined>(undefined);
+  const [selectedLoanForDetail, setSelectedLoanForDetail] = useState<Loan | null>(null);
+
+  const [isRepaymentModalOpen, setIsRepaymentModalOpen] = useState(false);
+  const [selectedLoanForRepay, setSelectedLoanForRepay] = useState<Loan | null>(null);
+
+  const [isInfrastructureModalOpen, setIsInfrastructureModalOpen] = useState(false);
+  const [selectedAssetForDetail, setSelectedAssetForDetail] = useState<InfrastructureAsset | null>(null);
+
+  const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
+  const [selectedAssetForMaintenance, setSelectedAssetForMaintenance] = useState<InfrastructureAsset | null>(null);
+
+  // Toast notification state
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Load all system records
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [farmersData, loansData, infraData, summaryData, logsData] = await Promise.all([
+        api.getFarmers(),
+        api.getLoans(),
+        api.getInfrastructure(),
+        api.getSummary(),
+        api.getAuditLogs(),
+      ]);
+
+      setFarmers(farmersData);
+      setLoans(loansData);
+      setInfrastructure(infraData);
+      setSummary(summaryData);
+      setAuditLogs(logsData);
+    } catch (err: any) {
+      console.error('Error loading data:', err);
+      setError(err.message || 'Failed to connect to AgriCore API backend.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Farmer Handlers
+  const handleSaveFarmer = async (farmerData: Partial<Farmer>) => {
+    if (editingFarmer) {
+      await api.updateFarmer(editingFarmer.id, farmerData);
+      showToast(`Farmer ${farmerData.fullName} updated successfully.`);
+    } else {
+      const created = await api.createFarmer(farmerData);
+      showToast(`Farmer ${created.fullName} registered with code ${created.farmerCode}.`);
+    }
+    await loadData();
+  };
+
+  const handleDeleteFarmer = async (id: string) => {
+    await api.deleteFarmer(id);
+    showToast('Farmer record removed.');
+    await loadData();
+  };
+
+  const handleOpenEditFarmer = (farmer: Farmer) => {
+    setEditingFarmer(farmer);
+    setIsFarmerModalOpen(true);
+  };
+
+  const handleOpenNewFarmer = () => {
+    setEditingFarmer(null);
+    setIsFarmerModalOpen(true);
+  };
+
+  const handleOpenApplyLoanForFarmer = (farmer: Farmer) => {
+    setSelectedFarmerForDetail(null);
+    setLoanModalFarmerId(farmer.id);
+    setIsLoanModalOpen(true);
+  };
+
+  // Loan Handlers
+  const handleApplyLoan = async (loanData: any) => {
+    const created = await api.applyForLoan(loanData);
+    showToast(`Loan application ${created.loanCode} submitted for review.`);
+    await loadData();
+  };
+
+  const handleApproveLoan = async (loan: Loan) => {
+    await api.updateLoanStatus(loan.id, 'Approved', loan.amountRequested);
+    showToast(`Loan ${loan.loanCode} approved for $${loan.amountRequested.toLocaleString()}.`);
+    await loadData();
+  };
+
+  const handleApproveLoanFromDetail = async (loanId: string, approvedAmount: number) => {
+    await api.updateLoanStatus(loanId, 'Approved', approvedAmount);
+    showToast(`Loan approved for $${approvedAmount.toLocaleString()}.`);
+    await loadData();
+  };
+
+  const handleRejectLoanFromDetail = async (loanId: string) => {
+    await api.updateLoanStatus(loanId, 'Rejected');
+    showToast(`Loan application rejected.`);
+    await loadData();
+  };
+
+  const handleDisburseLoan = async (loan: Loan) => {
+    await api.updateLoanStatus(loan.id, 'Disbursed');
+    showToast(`Loan ${loan.loanCode} funds disbursed to borrower.`);
+    await loadData();
+  };
+
+  const handleDisburseLoanFromDetail = async (loanId: string) => {
+    await api.updateLoanStatus(loanId, 'Disbursed');
+    showToast(`Loan funds disbursed to borrower.`);
+    await loadData();
+  };
+
+  const handleRecordRepayment = async (loanId: string, repayData: any) => {
+    const updatedLoan = await api.recordRepayment(loanId, repayData);
+    showToast(`Repayment of $${repayData.amount} recorded successfully.`);
+    await loadData();
+    // Update active modal if open
+    if (selectedLoanForDetail && selectedLoanForDetail.id === loanId) {
+      setSelectedLoanForDetail(updatedLoan);
+    }
+  };
+
+  // Infrastructure Handlers
+  const handleSaveAsset = async (assetData: Partial<InfrastructureAsset>) => {
+    const created = await api.createInfrastructure(assetData);
+    showToast(`Asset ${created.name} registered with code ${created.assetCode}.`);
+    await loadData();
+  };
+
+  const handleDeleteAsset = async (id: string) => {
+    await api.deleteInfrastructure(id);
+    showToast('Infrastructure asset deleted.');
+    await loadData();
+  };
+
+  const handleLogMaintenance = async (assetId: string, logData: any) => {
+    await api.logMaintenance(assetId, logData);
+    showToast('Maintenance service logged successfully.');
+    await loadData();
+  };
+
+  return (
+    <div className="min-h-screen bg-stone-100 text-stone-800 flex flex-col font-sans">
+      {/* Persistent App Header */}
+      <Header
+        currentTab={activeTab}
+        onSelectTab={setActiveTab}
+        onOpenNewFarmer={handleOpenNewFarmer}
+        onOpenNewLoan={() => {
+          setLoanModalFarmerId(undefined);
+          setIsLoanModalOpen(true);
+        }}
+        onOpenNewAsset={() => setIsInfrastructureModalOpen(true)}
+      />
+
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-5 right-5 z-50 bg-stone-900 text-white text-xs px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 border border-emerald-500/40 animate-fade-in">
+          <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+        {loading && farmers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-stone-500 space-y-3">
+            <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-xs font-medium">Connecting to AgriCore Agricultural Database...</p>
+          </div>
+        ) : error ? (
+          <div className="p-6 bg-rose-50 border border-rose-200 rounded-xl text-center max-w-lg mx-auto my-12">
+            <h3 className="font-bold text-rose-900 text-sm">System Connection Error</h3>
+            <p className="text-xs text-rose-700 mt-1">{error}</p>
+            <button
+              onClick={loadData}
+              className="mt-4 px-4 py-1.5 bg-rose-700 text-white text-xs font-semibold rounded-lg hover:bg-rose-800 transition cursor-pointer"
+            >
+              Retry Connection
+            </button>
+          </div>
+        ) : (
+          <>
+            {activeTab === 'dashboard' && (
+              <Dashboard
+                analyticsData={summary}
+                loans={loans}
+                infrastructure={infrastructure}
+                onNavigateTab={(tab) => setActiveTab(tab)}
+                onOpenNewFarmer={handleOpenNewFarmer}
+                onOpenNewLoan={() => {
+                  setLoanModalFarmerId(undefined);
+                  setIsLoanModalOpen(true);
+                }}
+                onSelectLoan={(l) => setSelectedLoanForDetail(l)}
+                onSelectAsset={(a) => setSelectedAssetForDetail(a)}
+              />
+            )}
+
+            {activeTab === 'farmers' && (
+              <FarmersView
+                farmers={farmers}
+                loans={loans}
+                onOpenNewFarmer={handleOpenNewFarmer}
+                onSelectFarmer={(f) => setSelectedFarmerForDetail(f)}
+                onEditFarmer={handleOpenEditFarmer}
+                onDeleteFarmer={handleDeleteFarmer}
+                onApplyLoanForFarmer={handleOpenApplyLoanForFarmer}
+              />
+            )}
+
+            {activeTab === 'loans' && (
+              <LoansView
+                loans={loans}
+                farmers={farmers}
+                onOpenNewLoan={() => {
+                  setLoanModalFarmerId(undefined);
+                  setIsLoanModalOpen(true);
+                }}
+                onSelectLoan={(l) => setSelectedLoanForDetail(l)}
+                onApproveLoan={handleApproveLoan}
+                onDisburseLoan={handleDisburseLoan}
+                onOpenRepayModal={(l) => {
+                  setSelectedLoanForRepay(l);
+                  setIsRepaymentModalOpen(true);
+                }}
+              />
+            )}
+
+            {activeTab === 'infrastructure' && (
+              <InfrastructureView
+                infrastructure={infrastructure}
+                onOpenNewAsset={() => setIsInfrastructureModalOpen(true)}
+                onSelectAsset={(a) => setSelectedAssetForDetail(a)}
+                onLogMaintenance={(a) => {
+                  setSelectedAssetForMaintenance(a);
+                  setIsMaintenanceModalOpen(true);
+                }}
+                onDeleteAsset={handleDeleteAsset}
+              />
+            )}
+
+            {activeTab === 'audit' && (
+              <AuditLogsView logs={auditLogs} onRefresh={loadData} />
+            )}
+          </>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-stone-200 py-4 px-6 text-center text-xs text-stone-500">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-2 font-medium">
+            <span>AgriCore Smallholder ERP & Microfinance Engine</span>
+            <span>•</span>
+            <span className="text-emerald-700 font-semibold">Render Deployment Ready</span>
+          </div>
+          <div className="text-[11px] text-stone-400">
+            Database: Atomic JSON file persistence • Port 3000 • Production Node.js Server
+          </div>
+        </div>
+      </footer>
+
+      {/* MODALS */}
+      {/* 1. Farmer Registration & Edit Modal */}
+      <FarmerModal
+        isOpen={isFarmerModalOpen}
+        onClose={() => setIsFarmerModalOpen(false)}
+        onSave={handleSaveFarmer}
+        initialFarmer={editingFarmer}
+      />
+
+      {/* 2. Farmer Detailed Dossier Modal */}
+      <FarmerDetailModal
+        isOpen={!!selectedFarmerForDetail}
+        farmer={selectedFarmerForDetail}
+        loans={loans}
+        onClose={() => setSelectedFarmerForDetail(null)}
+        onApplyLoan={handleOpenApplyLoanForFarmer}
+        onSelectLoan={(loan) => {
+          setSelectedFarmerForDetail(null);
+          setSelectedLoanForDetail(loan);
+        }}
+      />
+
+      {/* 3. Loan Application Modal */}
+      <LoanModal
+        isOpen={isLoanModalOpen}
+        onClose={() => setIsLoanModalOpen(false)}
+        farmers={farmers}
+        selectedFarmerId={loanModalFarmerId}
+        onApply={handleApplyLoan}
+      />
+
+      {/* 4. Loan Detail & Underwriting Modal */}
+      <LoanDetailModal
+        isOpen={!!selectedLoanForDetail}
+        loan={selectedLoanForDetail}
+        onClose={() => setSelectedLoanForDetail(null)}
+        onApprove={handleApproveLoanFromDetail}
+        onReject={handleRejectLoanFromDetail}
+        onDisburse={handleDisburseLoanFromDetail}
+        onOpenRepay={(loan) => {
+          setSelectedLoanForRepay(loan);
+          setIsRepaymentModalOpen(true);
+        }}
+      />
+
+      {/* 5. Repayment Recording Modal */}
+      <RepaymentModal
+        isOpen={isRepaymentModalOpen}
+        loan={selectedLoanForRepay}
+        onClose={() => setIsRepaymentModalOpen(false)}
+        onRecord={handleRecordRepayment}
+      />
+
+      {/* 6. Infrastructure Registration Modal */}
+      <InfrastructureModal
+        isOpen={isInfrastructureModalOpen}
+        onClose={() => setIsInfrastructureModalOpen(false)}
+        onSave={handleSaveAsset}
+      />
+
+      {/* 7. Asset Detail Dossier Modal */}
+      <AssetDetailModal
+        isOpen={!!selectedAssetForDetail}
+        asset={selectedAssetForDetail}
+        onClose={() => setSelectedAssetForDetail(null)}
+        onLogMaintenance={(asset) => {
+          setSelectedAssetForMaintenance(asset);
+          setIsMaintenanceModalOpen(true);
+        }}
+      />
+
+      {/* 8. Asset Maintenance Logging Modal */}
+      <MaintenanceModal
+        isOpen={isMaintenanceModalOpen}
+        asset={selectedAssetForMaintenance}
+        onClose={() => setIsMaintenanceModalOpen(false)}
+        onLog={handleLogMaintenance}
+      />
+    </div>
+  );
+}
