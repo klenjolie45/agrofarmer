@@ -330,7 +330,7 @@ export const FarmerPortal: React.FC<FarmerPortalProps> = ({
             </button>
             <div className="flex items-center gap-2">
               <Sprout className="w-6 h-6 text-emerald-300" />
-              <span className="font-bold text-lg text-white">AgriCore Farmer Portal</span>
+              <span className="font-bold text-lg text-white">AgriProduce Farmer Portal</span>
               <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-emerald-800 text-emerald-300 border border-emerald-700">
                 Self-Service
               </span>
