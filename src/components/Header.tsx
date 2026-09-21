@@ -59,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight text-white">AgriCore</h1>
+                <h1 className="text-xl font-bold tracking-tight text-white">AgroProduce</h1>
                 <span className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded bg-emerald-800 text-emerald-300 border border-emerald-700">
                   Officer ERP
                 </span>
